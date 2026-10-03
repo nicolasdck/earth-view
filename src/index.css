@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--color-slate-950);
+}
+
+/* Fond de la carte derrière les tuiles en cours de chargement. */
+.leaflet-container {
+  background: #000;
+  font-family: inherit;
+}

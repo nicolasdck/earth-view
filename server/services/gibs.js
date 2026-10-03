@@ -1,0 +1,235 @@
+const WMTS_BASE = 'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best'
+const WMS_URL = 'https://gibs.earthdata.nasa.gov/wms/epsg3857/best/wms.cgi'
+
+/**
+ * Catalogue des couches GIBS proposées (identifiants, niveaux de zoom et formats
+ * vérifiés dans le WMTSCapabilities EPSG:3857 « best »).
+ *
+ *  - kind    : base (fond opaque, une seule à la fois) | overlay (donnée superposée) | reference (traits/labels)
+ *  - service : wmts (tuiles pré-calculées) | wms (rendu serveur, pour les couches vectorielles comme les feux)
+ *  - level   : niveau natif maximal du TileMatrixSet GoogleMapsCompatible_Level{n}
+ *  - start   : première date disponible ; null = couche statique (sans dimension temporelle)
+ */
+const LAYERS = [
+  {
+    id: 'MODIS_Terra_CorrectedReflectance_TrueColor',
+    title: 'Couleurs naturelles — MODIS Terra',
+    description: 'Mosaïque quotidienne à 250 m, disponible depuis 2000.',
+    kind: 'base',
+    service: 'wmts',
+    format: 'jpg',
+    level: 9,
+    start: '2000-02-24',
+  },
+  {
+    id: 'VIIRS_SNPP_CorrectedReflectance_TrueColor',
+    title: 'Couleurs naturelles — VIIRS Suomi NPP',
+    description: 'Mosaïque quotidienne à 250 m, fauchée plus large (moins de lacunes).',
+    kind: 'base',
+    service: 'wmts',
+    format: 'jpg',
+    level: 9,
+    start: '2015-11-24',
+  },
+  {
+    id: 'VIIRS_NOAA20_CorrectedReflectance_TrueColor',
+    title: 'Couleurs naturelles — VIIRS NOAA-20',
+    description: 'Mosaïque quotidienne à 250 m.',
+    kind: 'base',
+    service: 'wmts',
+    format: 'jpg',
+    level: 9,
+    start: '2018-01-05',
+  },
+  {
+    id: 'MODIS_Terra_CorrectedReflectance_Bands721',
+    title: 'Fausses couleurs 7-2-1 — MODIS Terra',
+    description: 'Fait ressortir zones brûlées, inondations, neige et glace.',
+    kind: 'base',
+    service: 'wmts',
+    format: 'jpg',
+    level: 9,
+    start: '2000-02-24',
+  },
+  {
+    id: 'HLS_L30_Nadir_BRDF_Adjusted_Reflectance',
+    title: 'Landsat 8/9 HLS (30 m)',
+    description: 'Haute résolution ; couverture partielle chaque jour (revisite de 8 jours).',
+    kind: 'base',
+    service: 'wmts',
+    format: 'png',
+    level: 12,
+    start: '2013-04-11',
+  },
+  {
+    id: 'VIIRS_SNPP_DayNightBand_At_Sensor_Radiance',
+    title: 'Lumières nocturnes — VIIRS',
+    description: 'Radiance de nuit (villes, feux, aurores).',
+    kind: 'base',
+    service: 'wmts',
+    format: 'png',
+    level: 8,
+    start: '2020-11-18',
+  },
+  {
+    id: 'BlueMarble_ShadedRelief_Bathymetry',
+    title: 'Blue Marble (statique)',
+    description: 'Fond composite sans nuages, relief et bathymétrie.',
+    kind: 'base',
+    service: 'wmts',
+    format: 'jpeg',
+    level: 8,
+    start: null,
+  },
+  {
+    id: 'VIIRS_SNPP_Thermal_Anomalies_375m_All',
+    title: 'Feux actifs — VIIRS 375 m',
+    description: 'Anomalies thermiques et feux détectés (jour et nuit).',
+    kind: 'overlay',
+    service: 'wms',
+    format: 'png',
+    level: 8,
+    start: '2012-01-20',
+  },
+  {
+    id: 'MODIS_Combined_Thermal_Anomalies_All',
+    title: 'Feux actifs — MODIS 1 km',
+    description: 'Anomalies thermiques Terra + Aqua.',
+    kind: 'overlay',
+    service: 'wms',
+    format: 'png',
+    level: 7,
+    start: '2002-07-04',
+  },
+  {
+    id: 'MODIS_Terra_Land_Surface_Temp_Day',
+    title: 'Température de surface (jour)',
+    description: 'Température des terres émergées, MODIS Terra.',
+    kind: 'overlay',
+    service: 'wmts',
+    format: 'png',
+    level: 7,
+    start: '2000-02-24',
+  },
+  {
+    id: 'MODIS_Terra_Land_Surface_Temp_Night',
+    title: 'Température de surface (nuit)',
+    description: 'Température des terres émergées, MODIS Terra.',
+    kind: 'overlay',
+    service: 'wmts',
+    format: 'png',
+    level: 7,
+    start: '2000-02-24',
+  },
+  {
+    id: 'GHRSST_L4_MUR_Sea_Surface_Temperature',
+    title: 'Température de surface de la mer',
+    description: 'Analyse multi-capteurs MUR à 1 km.',
+    kind: 'overlay',
+    service: 'wmts',
+    format: 'png',
+    level: 7,
+    start: '2002-06-01',
+  },
+  {
+    id: 'MODIS_Terra_Cloud_Fraction_Day',
+    title: 'Couverture nuageuse (fraction)',
+    description: 'Fraction nuageuse de jour, MODIS Terra.',
+    kind: 'overlay',
+    service: 'wmts',
+    format: 'png',
+    level: 6,
+    start: '2000-02-24',
+  },
+  {
+    id: 'MODIS_Terra_Cloud_Top_Temp_Day',
+    title: 'Température du sommet des nuages',
+    description: 'De jour, MODIS Terra.',
+    kind: 'overlay',
+    service: 'wmts',
+    format: 'png',
+    level: 6,
+    start: '2000-02-24',
+  },
+  {
+    id: 'IMERG_Precipitation_Rate',
+    title: 'Précipitations (IMERG)',
+    description: 'Taux de précipitation multi-satellites GPM.',
+    kind: 'overlay',
+    service: 'wmts',
+    format: 'png',
+    level: 6,
+    start: '2000-06-01',
+  },
+  {
+    id: 'MODIS_Terra_Aerosol',
+    title: 'Aérosols (épaisseur optique)',
+    description: 'Fumées, poussières et pollution, MODIS Terra.',
+    kind: 'overlay',
+    service: 'wmts',
+    format: 'png',
+    level: 6,
+    start: '2000-02-24',
+  },
+  {
+    id: 'MODIS_Terra_NDSI_Snow_Cover',
+    title: 'Couverture neigeuse (NDSI)',
+    description: 'Indice de neige, MODIS Terra.',
+    kind: 'overlay',
+    service: 'wmts',
+    format: 'png',
+    level: 8,
+    start: '2000-02-24',
+  },
+  {
+    id: 'AIRS_L2_Carbon_Monoxide_500hPa_Volume_Mixing_Ratio_Day',
+    title: 'Monoxyde de carbone (500 hPa)',
+    description: 'Panaches de combustion, AIRS de jour.',
+    kind: 'overlay',
+    service: 'wmts',
+    format: 'png',
+    level: 6,
+    start: '2002-08-30',
+  },
+  {
+    id: 'Coastlines_15m',
+    title: 'Traits de côte',
+    description: '',
+    kind: 'reference',
+    service: 'wmts',
+    format: 'png',
+    level: 13,
+    start: null,
+  },
+  {
+    id: 'Reference_Features_15m',
+    title: 'Frontières et routes',
+    description: '',
+    kind: 'reference',
+    service: 'wmts',
+    format: 'png',
+    level: 13,
+    start: null,
+  },
+  {
+    id: 'Reference_Labels_15m',
+    title: 'Noms de lieux',
+    description: '',
+    kind: 'reference',
+    service: 'wmts',
+    format: 'png',
+    level: 13,
+    start: null,
+  },
+]
+
+function tileUrl(layer) {
+  if (layer.service === 'wms') return WMS_URL
+  // Les couches temporelles insèrent la date dans le chemin ; {time} est substitué côté client.
+  const time = layer.start ? '{time}/' : ''
+  return `${WMTS_BASE}/${layer.id}/default/${time}GoogleMapsCompatible_Level${layer.level}/{z}/{y}/{x}.${layer.format}`
+}
+
+export function getLayers() {
+  return LAYERS.map((layer) => ({ ...layer, url: tileUrl(layer) }))
+}
