@@ -45,11 +45,29 @@ npm start        # http://localhost:3001
 
 Autres scripts : `npm run dev:server`, `npm run dev:client`, `npm run lint`.
 
+## Déploiement sur Vercel
+
+Le dépôt est prêt pour Vercel ([vercel.json](vercel.json)) : le frontend est servi en statique depuis `dist/` et toutes les
+routes `/api/*` sont réécrites vers une seule fonction serverless, [api/index.js](api/index.js), qui exporte l'application
+Express de [server/app.js](server/app.js).
+
+1. Importez le projet dans Vercel (ou `vercel` en ligne de commande) ; aucun réglage de build à modifier.
+2. Dans *Settings → Environment Variables*, ajoutez `NASA_API_KEY` (le fichier `.env` n'est pas déployé), puis redéployez.
+
+Différences avec le serveur local :
+
+- Le cache mémoire ne vit que le temps d'une instance de fonction. Les réponses de l'API portent donc `s-maxage` et
+  `stale-while-revalidate` pour être mises en cache par le CDN de Vercel.
+- Le quota affiché dans l'en-tête et la mise à l'écart de l'API Earth Imagery sont propres à chaque instance.
+- La durée maximale d'une requête est fixée à 60 s dans `vercel.json`.
+
 ## Architecture
 
 ```
+api/index.js               Point d'entrée Vercel (exporte l'application Express)
 server/                    Backend Node.js (Express, JavaScript ESM)
-  index.js                 Application, montage des routes, gestion d'erreurs, service du build
+  app.js                   Application Express : routes, gestion d'erreurs
+  index.js                 Serveur autonome : écoute réseau et service du build
   config.js                Lecture de .env, clé NASA (repli DEMO_KEY)
   lib/
     http.js                fetch amont : délai maximal, nouvelles tentatives, rate limiting
@@ -114,6 +132,17 @@ plus proche tout court. HLS ne couvre que les terres émergées, à partir d'avr
 par le backend. Au-delà du niveau de zoom natif d'une couche, Leaflet agrandit les tuiles existantes plutôt que d'en
 demander. Lors d'un changement de date, l'ancienne couche reste affichée jusqu'au chargement de la nouvelle. Les feux
 actifs, publiés en tuiles vectorielles, sont demandés en WMS pour être rendus en image par GIBS.
+
+## Application installable (PWA)
+
+- **Icônes** : dans `public/icons/`. Pour les régénérer à partir d'un nouveau logo carré : `npm run icons -- chemin/vers/logo.png`.
+- **Manifest** : `public/manifest.webmanifest`.
+- **Service worker** : généré au build par `vite-plugin-pwa` ; il met en cache l'interface (pas les appels `/api` ni les tuiles).
+  Il n'est pas actif avec `npm run dev` : pour le tester, `npm run build` puis `npm start`.
+- **Bannière d'installation** : proposée quand le navigateur autorise l'installation (Chrome, Edge, Android) ; sur Safari iOS,
+  elle indique le passage par le menu Partager. Un refus la masque pendant 14 jours.
+- **Bannière de mise à jour** : affichée quand une nouvelle version est déployée (vérification au chargement puis toutes les heures) ;
+  « Mettre à jour » active la nouvelle version et recharge la page.
 
 ## Limites connues
 

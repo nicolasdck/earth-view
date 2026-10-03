@@ -17,7 +17,9 @@ function parseQuery(query) {
 }
 
 router.get('/assets', async (req, res) => {
-  res.json(await resolveAsset(parseQuery(req.query)))
+  const asset = await resolveAsset(parseQuery(req.query))
+  res.set('Cache-Control', 'public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400')
+  res.json(asset)
 })
 
 router.get('/imagery', async (req, res) => {
@@ -28,7 +30,7 @@ router.get('/imagery', async (req, res) => {
   const image = await getImage({ ...parseQuery(req.query), source })
   res.set({
     'Content-Type': image.contentType,
-    'Cache-Control': 'public, max-age=86400',
+    'Cache-Control': 'public, max-age=86400, s-maxage=86400, stale-while-revalidate=86400',
     'X-Imagery-Source': image.source,
   })
   res.send(image.buffer)

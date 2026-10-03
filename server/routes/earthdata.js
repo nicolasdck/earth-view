@@ -40,14 +40,14 @@ router.get('/collections', async (req, res) => {
     keyword: parseString(req.query.keyword, 'keyword'),
     cloudHosted: req.query.cloudHosted === 'true',
   })
-  res.set('Cache-Control', 'public, max-age=300')
+  res.set('Cache-Control', 'public, max-age=300, s-maxage=300, stale-while-revalidate=86400')
   res.json(result)
 })
 
 router.get('/collections/:id/granules', async (req, res) => {
   if (!CONCEPT_ID.test(req.params.id)) throw new HttpError(400, 'Identifiant de collection invalide.')
   const result = await searchGranules({ ...parsePaging(req.query, 50), collectionId: req.params.id })
-  res.set('Cache-Control', 'public, max-age=300')
+  res.set('Cache-Control', 'public, max-age=300, s-maxage=300, stale-while-revalidate=86400')
   res.json(result)
 })
 

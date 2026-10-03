@@ -5,6 +5,7 @@ import { EpicView } from './components/EpicView'
 import { LandsatView } from './components/LandsatView'
 import type { LandsatRequest } from './components/LandsatView'
 import { MapView } from './components/MapView'
+import { PwaBanners } from './components/PwaBanners'
 import { useApi } from './hooks/useApi'
 
 type TabId = 'epic' | 'map' | 'landsat' | 'search'
@@ -101,6 +102,8 @@ function App() {
         </div>
         <div hidden={tab !== 'search'}>{visited.includes('search') && <EarthdataSearch />}</div>
       </main>
+
+      <PwaBanners />
     </div>
   )
 }
