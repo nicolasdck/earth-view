@@ -3,8 +3,10 @@ import { config } from './config.js'
 import { HttpError, getRateLimit } from './lib/http.js'
 import earthRoutes from './routes/earth.js'
 import earthdataRoutes from './routes/earthdata.js'
+import eonetRoutes from './routes/eonet.js'
 import epicRoutes from './routes/epic.js'
 import gibsRoutes from './routes/gibs.js'
+import imagesRoutes from './routes/images.js'
 import * as earthImagery from './services/earthImagery.js'
 import * as earthdata from './services/earthdata.js'
 import * as epic from './services/epic.js'
@@ -18,6 +20,8 @@ app.use('/api/epic', epicRoutes)
 app.use('/api/earth', earthRoutes)
 app.use('/api/gibs', gibsRoutes)
 app.use('/api/earthdata', earthdataRoutes)
+app.use('/api/eonet', eonetRoutes)
+app.use('/api/images', imagesRoutes)
 
 app.get('/api/status', (_req, res) => {
   res.set('Cache-Control', 'no-store')

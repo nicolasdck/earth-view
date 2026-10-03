@@ -20,7 +20,14 @@ export default defineConfig(({ mode }) => {
           globPatterns: ['**/*.{js,css,html,png,svg,webmanifest}'],
           // Hors du précache : les icônes que seul le système utilise à l'installation
           // (l'interface n'affiche que icon-192 et les favicons).
-          globIgnores: ['icons/*-512.png', 'icons/maskable-*.png', 'icons/apple-touch-icon.png'],
+          // Le globe 3D (MapLibre, ≈ 1,5 Mo) n'est téléchargé qu'à sa première ouverture.
+          globIgnores: [
+            'icons/*-512.png',
+            'icons/maskable-*.png',
+            'icons/apple-touch-icon.png',
+            'assets/GlobeView-*',
+            'assets/maplibre-gl-worker-*',
+          ],
           navigateFallback: 'index.html',
           // Les appels à l'API ne doivent jamais recevoir index.html en réponse.
           navigateFallbackDenylist: [/^\/api\//],
@@ -28,6 +35,10 @@ export default defineConfig(({ mode }) => {
         },
       }),
     ],
+    // MapLibre lance son worker en tant que module ES (new Worker(url, { type: 'module' })).
+    worker: { format: 'es' as const },
+    // Le fragment du globe (MapLibre) dépasse le seuil par défaut ; il est chargé à la demande.
+    build: { chunkSizeWarningLimit: 1100 },
     server: {
       proxy: {
         '/api': `http://localhost:${env.PORT || 3001}`,

@@ -2,18 +2,20 @@ import { useState } from 'react'
 import { api } from './api/client'
 import { EarthdataSearch } from './components/EarthdataSearch'
 import { EpicView } from './components/EpicView'
+import { GalleryView } from './components/GalleryView'
 import { LandsatView } from './components/LandsatView'
 import type { LandsatRequest } from './components/LandsatView'
 import { MapView } from './components/MapView'
 import { PwaBanners } from './components/PwaBanners'
 import { useApi } from './hooks/useApi'
 
-type TabId = 'epic' | 'map' | 'landsat' | 'search'
+type TabId = 'epic' | 'map' | 'landsat' | 'gallery' | 'search'
 
 const TABS: Array<{ id: TabId; label: string }> = [
   { id: 'epic', label: 'Vue globale' },
-  { id: 'map', label: 'Carte & couches' },
+  { id: 'map', label: 'Carte & globe' },
   { id: 'landsat', label: 'Landsat' },
+  { id: 'gallery', label: 'Galerie' },
   { id: 'search', label: 'Jeux de données' },
 ]
 
@@ -100,6 +102,7 @@ function App() {
         <div hidden={tab !== 'landsat'}>
           {visited.includes('landsat') && <LandsatView key={landsatRequest?.id ?? 0} request={landsatRequest} />}
         </div>
+        <div hidden={tab !== 'gallery'}>{visited.includes('gallery') && <GalleryView />}</div>
         <div hidden={tab !== 'search'}>{visited.includes('search') && <EarthdataSearch />}</div>
       </main>
 

@@ -9,8 +9,9 @@ avec comparaison entre deux dates.
 | Onglet | Source | Ce qu'on y fait |
 | --- | --- | --- |
 | **Vue globale** | EPIC (satellite DSCOVR) | Face éclairée de la Terre jour par jour. Deux défilements : *rotation du jour* (toutes les prises de vue d'une journée) et *jour après jour* (une image par jour sur 7, 14 ou 30 jours, même face de la Terre). |
-| **Carte & couches** | GIBS (WMTS / WMS) via Leaflet | Fonds quotidiens MODIS / VIIRS / Landsat, couches superposables (feux actifs, température de surface, nuages, précipitations, aérosols, neige, CO…), défilement des jours, **comparaison de deux dates avec un rideau glissant**. Un clic sur la carte envoie le point vers l'onglet Landsat. |
+| **Carte & globe** | GIBS (WMTS / WMS) via Leaflet et MapLibre, EONET | Fonds quotidiens MODIS / VIIRS / Landsat, couches superposables (feux actifs, température de surface, nuages, précipitations, aérosols, neige, CO…), défilement des jours, **comparaison de deux dates avec un rideau glissant** (2D). Bascule **Carte 2D / Globe 3D** avec les mêmes couches et la même date. **Événements naturels en cours** (feux, cyclones, volcans, icebergs) en marqueurs, filtrables par catégorie. Un clic sur la carte envoie le point vers l'onglet Landsat. |
 | **Landsat** | Earth Imagery API, repli GIBS HLS | Recherche par latitude / longitude / date, choix du passage du satellite, comparaison côte à côte de deux dates. |
+| **Galerie** | NASA Image and Video Library | Photographies de la Terre depuis l'espace (ISS, Apollo, navette) : recherche par mots-clés, thèmes, époque, visionneuse plein écran. |
 | **Jeux de données** | Earthdata CMR | Recherche par mots-clés, période et hébergement cloud ; aperçu des fichiers récents de chaque jeu de données. |
 
 ## Installation
@@ -78,13 +79,17 @@ server/                    Backend Node.js (Express, JavaScript ESM)
     earthImagery.js        Earth Imagery (Landsat 8) + repli HLS via CMR et GIBS
     gibs.js                Catalogue des couches GIBS et gabarits d'URL de tuiles
     earthdata.js           Recherche CMR : collections et granules
-  routes/                  Une route Express par API (epic, earth, gibs, earthdata)
+    eonet.js               Événements naturels en cours (EONET)
+    imageLibrary.js        Photothèque NASA : recherche et fichiers d'une image
+  routes/                  Une route Express par API (epic, earth, gibs, earthdata, eonet, images)
 src/                       Frontend React 19 + TypeScript + Tailwind
   api/client.ts            Client typé de l'API du backend
   hooks/                   useApi (chargement annulable), useDebounced
   components/
     EpicView.tsx           Vue globale et timelapse
-    MapView.tsx            Carte Leaflet, couches GIBS, rideau de comparaison
+    MapView.tsx            Carte Leaflet, couches GIBS, rideau de comparaison, événements
+    GlobeView.tsx          Globe 3D MapLibre (chargé à la demande)
+    GalleryView.tsx        Galerie de la photothèque NASA
     TimeControls.tsx       Contrôles temporels (jour, mois, lecture)
     LandsatView.tsx        Imagerie locale par coordonnées
     EarthdataSearch.tsx    Recherche de jeux de données
@@ -103,6 +108,9 @@ src/                       Frontend React 19 + TypeScript + Tailwind
 | `GET /api/gibs/layers` | Catalogue des couches cartographiques. |
 | `GET /api/earthdata/collections?keyword=&page=&start=&end=&bbox=&cloudHosted=` | Recherche de jeux de données. |
 | `GET /api/earthdata/collections/:id/granules` | Fichiers les plus récents d'un jeu de données. |
+| `GET /api/eonet/events?days=` | Événements naturels en cours, observés dans les `days` derniers jours. |
+| `GET /api/images/search?q=&page=&pageSize=&yearStart=&yearEnd=` | Recherche dans la photothèque NASA. |
+| `GET /api/images/:id/files` | URL d'affichage et fichier original d'une image. |
 | `GET /api/status` | Type de clé utilisée, quota restant, statistiques de cache. |
 
 Les erreurs sont renvoyées sous la forme `{ "error": { "status", "message", "retryAfter" } }`.
@@ -143,6 +151,10 @@ actifs, publiés en tuiles vectorielles, sont demandés en WMS pour être rendus
   elle indique le passage par le menu Partager. Un refus la masque pendant 14 jours.
 - **Bannière de mise à jour** : affichée quand une nouvelle version est déployée (vérification au chargement puis toutes les heures) ;
   « Mettre à jour » active la nouvelle version et recharge la page.
+
+**Globe 3D.** MapLibre GL (projection globe) affiche les tuiles GIBS de la carte, sans conversion. La bibliothèque et son
+worker (≈ 1,5 Mo) forment un fragment séparé, téléchargé à la première ouverture du globe et exclu du précache de la PWA.
+Le worker est compilé par Vite (`?worker&url`, format ES) et déclaré à MapLibre avec `setWorkerUrl`.
 
 ## Limites connues
 

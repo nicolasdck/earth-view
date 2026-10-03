@@ -162,6 +162,51 @@ export interface CollectionSearch {
   cloudHosted?: boolean
 }
 
+/* ---------- Événements naturels (EONET) ---------- */
+
+export interface NaturalEvent {
+  id: string
+  title: string
+  category: string
+  categoryLabel: string
+  date: string
+  firstDate: string
+  lat: number
+  lon: number
+  magnitude: { value: number; unit: string } | null
+  positions: number
+  sourceUrl: string | null
+}
+
+/* ---------- Photothèque NASA ---------- */
+
+export interface LibraryImage {
+  id: string
+  title: string
+  description: string
+  date: string | null
+  center: string | null
+  photographer: string | null
+  location: string | null
+  keywords: string[]
+  thumb: string
+  detailsUrl: string
+}
+
+export interface ImageFiles {
+  id: string
+  display: string | null
+  original: string | null
+}
+
+export interface ImageSearch {
+  q: string
+  page: number
+  pageSize: number
+  yearStart?: number
+  yearEnd?: number
+}
+
 /* ---------- Statut ---------- */
 
 export interface ApiStatus {
@@ -193,4 +238,12 @@ export const api = {
     get<Paged<EarthdataCollection>>('/earthdata/collections', { ...search }, signal),
   granules: (collectionId: string, pageSize: number, signal?: AbortSignal) =>
     get<Paged<EarthdataGranule>>(`/earthdata/collections/${collectionId}/granules`, { pageSize }, signal),
+
+  events: (days: number, signal?: AbortSignal) =>
+    get<{ days: number; events: NaturalEvent[] }>('/eonet/events', { days }, signal),
+
+  imageSearch: (search: ImageSearch, signal?: AbortSignal) =>
+    get<Paged<LibraryImage>>('/images/search', { ...search }, signal),
+  imageFiles: (id: string, signal?: AbortSignal) =>
+    get<ImageFiles>(`/images/${encodeURIComponent(id)}/files`, undefined, signal),
 }
